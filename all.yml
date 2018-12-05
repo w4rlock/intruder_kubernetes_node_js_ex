@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: intruder
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-v1
+  namespace: intruder
+  labels:
+    k8s-app: app-v1
+    kubernetes.io/cluster-service: "true"
+spec:
+  type: LoadBalancer
+  selector:
+    app: kube-app-v1
+  ports:
+  - port: 80
+    targetPort: 8080
+    name: default
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: intruder-frontend--0-0-1-app-v1
+  namespace: intruder
+spec:
+  replicas: 5
+  template:
+    metadata:
+      labels:
+        app: kube-app-v1
+    spec:
+      containers:
+      - name: app-v1
+        image: 127.0.0.1:5000/intruder/kube_app_v1:0.0.1
+        imagePullPolicy: Always
+        livenessProbe:
+            httpGet:
+                path: /
+                port: 8080
+            periodSeconds: 5
+        ports:
+        - containerPort: 8080

@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: registry
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    role: "registry"
+  template:
+    metadata:
+      namespace: registry
+      labels:
+        role: "registry"
+    spec:
+      hostNetwork: true
+      containers:
+      - name:  registry
+        image: registry:2.4.0
+        ports:
+          - containerPort: 5000
+            hostPort: 5000
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: registry
+  namespace: kube-system
+  labels:
+    kubernetes.io/cluster-service: "true"
+    kubernetes.io/name: "registry"
+spec:
+  ports:
+    - port: 5000
+      targetPort: 5000
+  type: LoadBalancer
+  selector:
+    role: registry
